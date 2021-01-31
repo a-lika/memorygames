@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hint Game</title>
+    <link rel="shortcut icon" href="images/hint.png" type="image/png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/styles.css" />
+
+    <script src="js/jq/jquery-ui-1.12.1/external/jquery/jquery.js"></script>
+    <script src="js/jq/jquery-ui-1.12.1/jquery-ui.js"></script>
+    <link href="js/jq/jquery-ui-1.12.1/jquery-ui.css" />
+    <script src="source/words.js"></script>
+    <script src="js/main.js"></script>
+  </head>
+
+  <body>
+    <header>
+      <section class="content header-content">
+        <h1 id="logo" class="logo">Подсказки</h1>
+        <div class="menu">
+          <button id="manage-game" class="manage-game">Начать игру</button>
+        </div>
+        <div class="options">
+          <div
+            id="complexity"
+            class="complexity options-circle"
+            title="Сложность"
+          >
+            <img
+              src="images/star-yellow.png"
+              alt="compexity"
+              class="complexity-img"
+            />
+          </div>
+          <div id="rules" class="rules options-circle" title="Правила">
+            <img src="images/rules-yellow.png" alt="rules" class="rules-img" />
+          </div>
+        </div>
+        <div class="timer hidden">
+          <span class="minutes" id="minutes">00</span> :
+          <span class="seconds" id="seconds">00</span>
+        </div>
+      </section>
+    </header>
+    <main>
+      <section class="content main-content">
+        <div class="game-field">
+          <div id="instructions" class="instructions hidden">
+            <h3>Правила игры</h3>
+            <hr class="title-line" />
+            <div class="instructions-info">
+              <div class="ins-info">
+                Цель игры состоит в тренировке запоминания слов с помощью
+                ассоциаций.
+              </div>
+              <div class="ins-info">
+                Игра начнется после нажатия на кнопку
+                <span class="colored-main">Начать игру</span>.
+              </div>
+              <div class="ins-info">
+                В начале игры в левой части экрана появятся карточки со словами,
+                которые необходимо запомнить. В правой части - картинки, которые
+                нужно соотнести со словами с помощью мышки.
+              </div>
+              <div class="ins-info">
+                Как только все карточки будут заполнены картинками и игрок будет
+                готов воспроизвести слова по памяти, глядя на картинки,
+                необходимо нажать на кнопку
+                <span class="colored-main">Запомнить</span>.
+              </div>
+              <div class="ins-info">
+                После этого на экране появятся только картинки и поля для ввода
+                слов.
+              </div>
+              <div class="ins-info">
+                Если игрок правильно вводит первые 3 буквы слова, программа сама
+                допишет остальные буквы. Иначе, в поле появится слово
+                <span class="colored-secondary">неправильно</span>.
+              </div>
+              <div class="ins-info">
+                Игрок имеет неограниченное количество попыток для ввода слов.
+              </div>
+              <div class="ins-info">
+                Если игроку не удаётся вспомнить слово, он может воспользоваться
+                подсказкой в правом верхнем углу карточки. Однако, в этом случае
+                ответ не будет засчитан, как правильный.
+              </div>
+              <div class="ins-info">
+                Нажатие на кнопку
+                <span class="colored-main">Проверить</span> покажет результат
+                игры.
+              </div>
+              <div class="ins-info">
+                Игра имеет 2 уровня сложности. Игрок может выбрать сложность,
+                нажав на соответствующий значок в правом верхнем углу экрана.
+              </div>
+            </div>
+          </div>
+          <div id="complexity-settings" class="complexity-settings hidden">
+            <h3>Cложность игры</h3>
+            <hr class="title-line" />
+            <div class="settings settings-container">
+              <div class="level">
+                <div class="options-circle">
+                  <img
+                    src="images/star-yellow.png"
+                    alt="compexity"
+                    class="complexity-img"
+                  />
+                </div>
+                <input type="radio" name="level" id="easy" checked />
+                <label for="easy">Простая</label>
+                <div class="settings-description">
+                  <p>9 карточек</p>
+                  <p>9 картинок</p>
+                </div>
+              </div>
+              <div class="level">
+                <div class="options-circle">
+                  <img
+                    src="images/star-yellow.png"
+                    alt="compexity"
+                    class="complexity-img"
+                  />
+                  <img
+                    src="images/star-yellow.png"
+                    alt="compexity"
+                    class="complexity-img"
+                  />
+                </div>
+                <input type="radio" name="level" id="hard" />
+                <label for="hard">Сложная</label>
+                <div class="settings-description">
+                  <p>18 карточек</p>
+                  <p>21 картинка</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="collections" class="collections">
+            <h3>Выберите коллекцию</h3>
+            <hr class="title-line" />
+            <div id="collections-list" class="collections-list"></div>
+          </div>
+          <div id="card-field-container" class="card-field-container hidden">
+            <div class="items-field" id="items-field"></div>
+            <div class="draggable-area" id="draggable-area"></div>
+          </div>
+          <div id="results" class="results hidden">
+            <h3 class="results-title">Результат игры</h3>
+            <div class="results-info">
+              <div>
+                Заполнено карточек:
+                <span id="all-answers" class="all-answers">0</span> /
+                <span class="all-cards-count">0</span>
+              </div>
+              <div>
+                Правильных ответов:
+                <span id="right-answers" class="right-answers">0</span> /
+                <span class="all-cards-count">0</span>
+              </div>
+              <div>
+                Использовано подсказок:
+                <span id="hints-count" class="hints-count">0</span>
+              </div>
+              <div>
+                Общее время игры:
+                <span id="whole-game-time" class="whole-game-time"
+                  >00 : 00</span
+                >
+              </div>
+              <div>
+                Время на запоминание:
+                <span id="time-for-remember" class="time-for-remember"
+                  >00 : 00</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
