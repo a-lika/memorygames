@@ -16,6 +16,7 @@ window.addEventListener(
     const logo = document.getElementById("logo");
     const collections = document.getElementById("collections");
     const collectionsList = document.getElementById("collections-list");
+    const spinner = document.getElementById('loader');
 
     const proxyUrl = "https://cors-anywhere.herokuapp.com/";
 
@@ -23,7 +24,7 @@ window.addEventListener(
       "http://memorygames.pythonanywhere.com/api/v1/hints/collection/active/";
 
     const collectionAPI =
-      "https://memorygames.pythonanywhere.com/api/v1/hints/collection/images/1/";
+      "https://memorygames.pythonanywhere.com/api/v1/hints/collection/images/";
 
     let complexityPoints = 9;
     let guessed = 0;
@@ -33,6 +34,8 @@ window.addEventListener(
     let timeForRemembering = "";
     let timer;
     let chosenCollection = 1;
+    let activeCollectionsArray = [];
+    let collectionsDataArray = [];
 
     const createNewElement = (className, tag = "div") => {
       const newTag = document.createElement(tag);
@@ -40,14 +43,12 @@ window.addEventListener(
       return newTag;
     };
 
-    //  const getActiveCollections = () => {};
-
     const getActiveCollections = async () => {
       const activeCollections = fetch(proxyUrl + activeCollectionsAPI)
         .then((response) => response.json())
         .then((data) => data)
-        .catch((rejected) => {
-          console.log(rejected);
+        .catch((error) => {
+          alert('При получении данных возникла ошибка :(');
         });
       return activeCollections;
     };
@@ -63,24 +64,19 @@ window.addEventListener(
 
         event.target.classList.add("collection-checked");
         chosenCollection = event.target.id;
-        // console.log(chosenCollection);
       }
     };
 
     const createCollections = async () => {
-      const collections = await getActiveCollections();
-      console.log(collections);
-      if (collections) {
+      const activeCollections = activeCollectionsArray.length ? activeCollectionsArray : await getActiveCollections();
+      if (activeCollections) {
+        activeCollectionsArray = [...activeCollections];
+        chosenCollection = activeCollectionsArray[0].id;
+        spinner.classList.add("hidden");
+        collections.classList.remove("hidden");
         const fragment = document.createDocumentFragment();
-        collections.forEach((data) => {
-          // const input = createNewElement("collection-input", "input");
-          //  input.type = "radio";
-          // input.name = "collection";
-          //input.id = `input-${data.id}`;
-          // const label = createNewElement("collection-label", "label");
-          //  label.for = `input-${data.id}`;
+        activeCollections.forEach((data) => {
           const collectionItem = createNewElement("collection-item");
-          //  collectionItem.id = data.id;
           const collectionItemName = createNewElement("collection-name", "p");
           const collectionItemDescription = createNewElement(
             "collection-description",
@@ -101,9 +97,17 @@ window.addEventListener(
         collectionsList
           .getElementsByClassName("collection-item")[0]
           .classList.add("collection-checked");
+
         collectionsList.addEventListener("click", toCheck, false);
-        // console.log(collectionsList);
+        startListeners();
       }
+    };
+
+    const startListeners = () => {
+      complexity.addEventListener("click", showComplexity, false);
+      rules.addEventListener("click", showRules, false);
+      logo.addEventListener("click", goToMainScreen, false);
+      manageBtn.addEventListener("click", startGame, false);
     };
 
     createCollections();
@@ -115,16 +119,12 @@ window.addEventListener(
       complexitySettings.classList.remove("hidden");
     };
 
-    complexity.addEventListener("click", showComplexity, false);
-
     const showRules = (e) => {
       complexitySettings.classList.add("hidden");
       results.classList.add("hidden");
       collections.classList.add("hidden");
       instructions.classList.remove("hidden");
     };
-
-    rules.addEventListener("click", showRules, false);
 
     const createComplexityStar = (n) => {
       $("#complexity").empty();
@@ -192,15 +192,35 @@ window.addEventListener(
       this.item.appendChild(this.itemName);
     }
 
-    const getRandomItems = (count, array = words) => {
-      const keys = Object.keys(array);
+    const getCollectionData = async () => {
+      const currentCollection = await fetch(proxyUrl + collectionAPI + chosenCollection)
+        .then(response => response.json())
+        .then(data => data)
+        .catch((rejected) => {
+          alert('При получении данных возникла ошибка :(');
+        });
+      return currentCollection;
+    };
+
+
+    const getRandomItems = async (count) => {
+      let collectionData;
+      if (!collectionsDataArray[chosenCollection] || collectionsDataArray[chosenCollection].length < 18) {
+        collectionData = await getCollectionData();
+        collectionsDataArray[chosenCollection] = collectionData;
+      } else {
+        collectionData = collectionsDataArray[chosenCollection];
+      }
+
+      const keys = Object.keys(collectionData);
       const keyArray = [];
       const valueArray = [];
 
       while (keyArray.length < count) {
-        const key = keys[Math.floor(Math.random() * keys.length)];
+        const objectNumber = Math.floor(Math.random() * keys.length);
+        const key = collectionData[objectNumber].name;
         if (keyArray.indexOf(key) === -1) {
-          const value = array[key];
+          const value = collectionData[objectNumber].url;
           keyArray.push(key);
           valueArray.push(value);
         }
@@ -208,9 +228,10 @@ window.addEventListener(
 
       if (count === 18) {
         while (valueArray.length < count + 3) {
-          const key = keys[Math.floor(Math.random() * keys.length)];
-          if (valueArray.indexOf(array[key]) === -1) {
-            valueArray.push(array[key]);
+          const objectNumber = Math.floor(Math.random() * keys.length);
+          const key = collectionData[objectNumber].url;
+          if (valueArray.indexOf(key) === -1) {
+            valueArray.push(collectionData[objectNumber].url);
           }
         }
       }
@@ -221,16 +242,24 @@ window.addEventListener(
       };
     };
 
-    function Image(n) {
+
+    function Image(image) {
       this.image = createNewElement("random-img", "img");
-      this.image.src = `source/cards/${n}`;
+      this.image.src = image;
       this.image.setAttribute("data-value", "card");
     }
 
-    const generateCardItems = (count) => {
+    const generateCardItems = async (count) => {
+      logo.removeEventListener("click", goToMainScreen, false);
+      complexity.removeEventListener("click", showComplexity, false);
+      rules.removeEventListener("click", showRules, false);
+      spinner.classList.remove("hidden");
       const fragment = document.createDocumentFragment();
-      const randomItems = getRandomItems(count);
-
+      const randomItems = await getRandomItems(count);
+      spinner.classList.add("hidden");
+      logo.addEventListener("click", goToMainScreen, false);
+      complexity.addEventListener("click", showComplexity, false);
+      rules.addEventListener("click", showRules, false);
       for (let i = 0; i < count; i++) {
         const card = new ItemBlock(i);
         itemField.appendChild(card.item);
@@ -264,14 +293,15 @@ window.addEventListener(
         helper: "clone",
         cursor: "crosshair",
       });
-    };
 
-    $("#draggable-area").droppable({
-      drop: function (event, ui) {
-        accept: 'img[data-value="card"]',
-          $("#draggable-area").append(ui.draggable);
-      },
-    });
+
+      $("#draggable-area").droppable({
+        drop: function (event, ui) {
+          accept: 'img[data-value="card"]',
+            $("#draggable-area").append(ui.draggable);
+        },
+      });
+    };
 
     const startTimer = () => {
       let countSeconds = -1;
@@ -310,8 +340,7 @@ window.addEventListener(
       for (let i = 0; i < len; i++) {
         const url = items[i].getElementsByClassName("random-img")[0].src;
         const text = items[i].children[1].value;
-        const source = url.split("/");
-        const image = source[source.length - 1];
+        const image = url;
         answers[items[i].id] = {
           text,
           image,
@@ -487,7 +516,7 @@ window.addEventListener(
       ) {
         return new ModalWindowController(
           document.body,
-          "Необходимо соотнести все карточки с картинками!"
+          "Необходимо соотнести все картинки с карточками!"
         );
       }
       getAnswer();
@@ -497,7 +526,7 @@ window.addEventListener(
       manageBtn.removeEventListener("click", rememberItems);
     };
 
-    const startGame = (e) => {
+    const startGame = async (e) => {
       manageBtn.removeEventListener("click", startGame, false);
       collections.classList.add("hidden");
       complexitySettings.classList.add("hidden");
@@ -507,7 +536,8 @@ window.addEventListener(
       guessed = 0;
       hints = 0;
 
-      generateCardItems(complexityPoints);
+      await generateCardItems(complexityPoints);
+
       clearTimeout(timer);
       manageBtn.textContent = "Запомнить";
       manageBtn.addEventListener("click", rememberItems, false);
@@ -546,9 +576,7 @@ window.addEventListener(
       manageBtn.addEventListener("click", startGame, false);
     };
 
-    logo.addEventListener("click", goToMainScreen, false);
-
-    manageBtn.addEventListener("click", startGame, false);
   },
+
   false
 );

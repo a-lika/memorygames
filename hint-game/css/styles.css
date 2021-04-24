@@ -36,6 +36,33 @@ header {
   user-select: none;
 }
 
+  #spinner{
+    width: 50px;
+    height: 50px;
+  
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid rgb(95, 211, 211);
+    border-bottom: 3px solid rgb(247, 185, 43);
+    border-radius: 100%;
+  
+    position: absolute;
+    top:0;
+    bottom:0;
+    left:0;
+    right: 0;
+    margin: auto;
+  
+    animation: spin 1s infinite linear;
+  }
+  
+  @keyframes spin {
+    from {
+        transform: rotate(0deg);
+    } to {
+        transform: rotate(360deg);
+    }
+  }
+
 .content {
   max-width: 1400px;
   margin: 0 auto;
