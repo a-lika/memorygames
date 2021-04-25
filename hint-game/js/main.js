@@ -44,11 +44,11 @@ window.addEventListener(
     };
 
     const getActiveCollections = async () => {
-      const activeCollections = fetch(proxyUrl + activeCollectionsAPI)
+      const activeCollections = fetch(/* proxyUrl +  */activeCollectionsAPI)
         .then((response) => response.json())
         .then((data) => data)
         .catch((error) => {
-          alert('При получении данных возникла ошибка :(');
+          alert('При получении данных возникла ошибка: ' + error);
         });
       return activeCollections;
     };
@@ -193,11 +193,11 @@ window.addEventListener(
     }
 
     const getCollectionData = async () => {
-      const currentCollection = await fetch(proxyUrl + collectionAPI + chosenCollection)
+      const currentCollection = await fetch(/* proxyUrl +  */collectionAPI + chosenCollection)
         .then(response => response.json())
         .then(data => data)
-        .catch((rejected) => {
-          alert('При получении данных возникла ошибка :(');
+        .catch((error) => {
+          alert('При получении данных возникла ошибка: ' + error);
         });
       return currentCollection;
     };
